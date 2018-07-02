@@ -71,7 +71,7 @@ public class ParentController {
         return new ResponseEntity<RESTError>(new RESTError(1, "Parent not found"), HttpStatus.NOT_FOUND);
 
     }
-
+//TODO find out of there is annotation that clears all referenced fields, and is there an annotation that sets default value after deletion of a certain entity
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     public ResponseEntity<?> deleteParent(@PathVariable Integer id){
         if (parentRepo.findById(id).isPresent()) {

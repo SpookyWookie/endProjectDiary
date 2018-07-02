@@ -1,8 +1,6 @@
 package com.example.school_diary_end_project.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.*;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -12,10 +10,11 @@ import java.util.List;
 
 @Entity
 @JsonIgnoreProperties({"Handler", "hibernateLazyInitializer"})
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class, property = "id"
+)
 public class ParentEntity extends UserEntity {
 
-    //@JsonBackReference(value = "frontend")
-    @JsonBackReference
     @OneToMany(cascade = CascadeType.REFRESH, fetch = FetchType.LAZY, mappedBy = "parent")
     private List<PupilEntity> children;
 
