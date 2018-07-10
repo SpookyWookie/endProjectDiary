@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.logging.Handler;
 
 @Entity
-@JsonIgnoreProperties({"Handler", "hibernateLazyInitializer"})
+@JsonIgnoreProperties({"handler", "hibernateLazyInitializer"})
 @JsonIdentityInfo(
         generator = ObjectIdGenerators.PropertyGenerator.class, property = "id"
 )

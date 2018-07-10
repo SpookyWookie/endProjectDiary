@@ -9,4 +9,10 @@ import org.springframework.data.repository.CrudRepository;
 public interface ScheduleRepository extends CrudRepository<ScheduleEntity, Integer> {
 
     public Boolean existsByTeacherAndSubjectAndDepartment(TeacherEntity teacher, SubjectEntity subject, DepartmentEntity department);
+
+    public void deleteAllByTeacher(TeacherEntity teacher);
+
+    public void deleteAllBySubject(SubjectEntity subject);
+
+    public void deleteAllByDepartment(DepartmentEntity department);
 }

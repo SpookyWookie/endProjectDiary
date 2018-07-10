@@ -4,12 +4,14 @@ import com.example.school_diary_end_project.controllers.util.RESTError;
 import com.example.school_diary_end_project.entities.DepartmentEntity;
 import com.example.school_diary_end_project.repositories.DepartmentRepository;
 import com.example.school_diary_end_project.repositories.PupilRepository;
+import com.example.school_diary_end_project.repositories.ScheduleRepository;
 import com.example.school_diary_end_project.repositories.TeacherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 @RestController
@@ -25,6 +27,9 @@ public class DepartmentController {
     @Autowired
     private TeacherRepository teachRepo;
 
+    @Autowired
+    private ScheduleRepository scheduleRepo;
+
 
 
     @RequestMapping
@@ -32,6 +37,10 @@ public class DepartmentController {
         return new ResponseEntity<List<DepartmentEntity>>((List<DepartmentEntity>) departmentRepo.findAll(), HttpStatus.OK);
     }
 
+
+//    TODO when creating department, enable only creation of enumerated departments in order (8 departments are able to be created)
+//    TODO hipoteticki ofc
+//    And disable ability to change department enum
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<?> addDepartment(@RequestBody DepartmentEntity newDepartment) {
 
@@ -62,9 +71,23 @@ public class DepartmentController {
     public ResponseEntity<?> deleteDepartment(@PathVariable Integer id) {
         if (departmentRepo.findById(id).isPresent()) {
             DepartmentEntity temp = departmentRepo.findById(id).get();
+            if (temp.getPupils() != null && temp.getPupils().size()>0){
+                return new ResponseEntity<RESTError>(new RESTError(2, "Department cannot be deleted if there are any pupils in it"), HttpStatus.BAD_REQUEST);
+            }
+
+            if (temp.getHeadTeacher() != null){
+                return new ResponseEntity<RESTError>(new RESTError(3, "Department cannot be deleted if teacher is assigned"), HttpStatus.BAD_REQUEST);
+            }
+
+            if (temp.getSchedule() != null && temp.getSchedule().size()>0){
+                return new ResponseEntity<RESTError>(new RESTError(4, "Department cannot be deleted if schedule refers to it more than once"), HttpStatus.BAD_REQUEST);
+            }
 
 
-            return new ResponseEntity<String>(String.format("Department %s has been deleted", temp.getYear()+"-"+temp.getEnumeration()), HttpStatus.OK);
+            departmentRepo.deleteById(id);
+            if (!departmentRepo.findById(id).isPresent()) {
+                return new ResponseEntity<String>(String.format("Department %s has been deleted", temp.getYear() + "-" + temp.getEnumeration()), HttpStatus.OK);
+            }
 
         }
 
@@ -84,10 +107,48 @@ public class DepartmentController {
     public ResponseEntity<?> editHeadTeacher(@PathVariable Integer id, @PathVariable Integer idt){
         if (teachRepo.findById(idt).isPresent()) {
             if (departmentRepo.findById(id).isPresent()) {
-                departmentRepo.findById(id).get().setHeadTeacher(teachRepo.findById(idt).get());
+                teachRepo.findById(idt).get().setHeadOfDepartment(departmentRepo.findById(id).get());
+                teachRepo.save(teachRepo.findById(idt).get());
+//                departmentRepo.findById(id).get().setHeadTeacher(teachRepo.findById(idt).get());
                 return new ResponseEntity<DepartmentEntity>(departmentRepo.save(departmentRepo.findById(id).get()), HttpStatus.OK);
             }
         }
         return new ResponseEntity<RESTError>(new RESTError(1, "Department or Teacher not found"), HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(value ="/{id}/removeHeadTeacher", method = RequestMethod.PUT)
+    public ResponseEntity<?> editHeadTeacher(@PathVariable Integer id){
+        if(departmentRepo.findById(id).isPresent()){
+            DepartmentEntity temp = departmentRepo.findById(id).get();
+            if (temp.getHeadTeacher() != null){
+                teachRepo.findById(temp.getHeadTeacher().getId()).get().setHeadOfDepartment(null);
+                teachRepo.save(teachRepo.findById(temp.getHeadTeacher().getId()).get());
+                return new ResponseEntity<DepartmentEntity>(departmentRepo.save(departmentRepo.findById(id).get()), HttpStatus.OK);
+            }
+        }
+        return new ResponseEntity<RESTError>(new RESTError(1, "Department not found or teacher not assigned"), HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(value ="/{id}/removeReferences", method = RequestMethod.PUT)
+    public ResponseEntity<?> removeReferences(@PathVariable Integer id){
+        if (departmentRepo.findById(id).isPresent()){
+            DepartmentEntity temp = departmentRepo.findById(id).get();
+            if (temp.getHeadTeacher() != null){
+                teachRepo.findById(temp.getHeadTeacher().getId()).get().setHeadOfDepartment(null);
+                teachRepo.save(teachRepo.findById(temp.getHeadTeacher().getId()).get());
+
+            }
+
+            if (temp.getSchedule() != null && temp.getSchedule().size() >0){
+                scheduleRepo.deleteAllByDepartment(temp);
+            }
+
+            if (temp.getPupils() != null && temp.getPupils().size() > 0){
+                pupilRepo.deleteAllByDepartment(temp);
+            }
+            return new ResponseEntity<DepartmentEntity>(departmentRepo.save(departmentRepo.findById(id).get()), HttpStatus.OK);
+        }
+
+        return new ResponseEntity<RESTError>(new RESTError(1, "Department not found"), HttpStatus.NOT_FOUND);
     }
 }

@@ -71,17 +71,20 @@ public class ParentController {
         return new ResponseEntity<RESTError>(new RESTError(1, "Parent not found"), HttpStatus.NOT_FOUND);
 
     }
-//TODO find out of there is annotation that clears all referenced fields, and is there an annotation that sets default value after deletion of a certain entity
+
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     public ResponseEntity<?> deleteParent(@PathVariable Integer id){
         if (parentRepo.findById(id).isPresent()) {
             ParentEntity temp = parentRepo.findById(id).get();
             String exit = String.format("Parent %s %s has been deleted",temp.getName(), temp.getSurname());
-            //If a parent is deleted, all fields that had this parent are set to null
-            for (PupilEntity pupil: pupilRepo.findAllByParent(temp)) {
-                pupil.setParent(null);
+            //If a parent is deleted, all pupil fields that had this parent are set to null
+            if (temp.getChildren().size()>0){
+                for (PupilEntity pupil: pupilRepo.findAllByParent(temp)) {
+                    pupil.setParent(null);
 
+                }
             }
+
             parentRepo.deleteById(id);
             return new ResponseEntity<ParentEntity>(temp, HttpStatus.OK);
 
@@ -96,5 +99,16 @@ public class ParentController {
             return new ResponseEntity<ParentEntity>(parentRepo.findById(id).get(), HttpStatus.OK);
         }
         return new ResponseEntity<RESTError>(new RESTError(1, "Parent not found"), HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping( value="/{id]/child/{idpupil}", method = RequestMethod.PUT)
+    public ResponseEntity<?> addChild (@PathVariable Integer id, @PathVariable Integer idpupil){
+        if (pupilRepo.findById(idpupil).isPresent() && parentRepo.findById(id).isPresent()){
+            pupilRepo.findById(idpupil).get().setParent(parentRepo.findById(id).get());
+            pupilRepo.save(pupilRepo.findById(idpupil).get());
+            return new ResponseEntity<ParentEntity>(parentRepo.findById(id).get(), HttpStatus.OK);
+
+        }
+        return new ResponseEntity<RESTError>(new RESTError(1, "Parent or Pupil not found"), HttpStatus.NOT_FOUND);
     }
 }

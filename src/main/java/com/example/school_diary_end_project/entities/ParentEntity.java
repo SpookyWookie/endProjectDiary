@@ -9,7 +9,7 @@ import javax.persistence.OneToMany;
 import java.util.List;
 
 @Entity
-@JsonIgnoreProperties({"Handler", "hibernateLazyInitializer"})
+@JsonIgnoreProperties({"handler", "hibernateLazyInitializer"})
 @JsonIdentityInfo(
         generator = ObjectIdGenerators.PropertyGenerator.class, property = "id"
 )

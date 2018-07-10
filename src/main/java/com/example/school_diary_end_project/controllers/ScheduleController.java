@@ -41,7 +41,7 @@ public class ScheduleController {
 
         ScheduleEntity temp = new ScheduleEntity();
 
-        if (!newSchedule.getDescription().equals(null)){
+        if (newSchedule.getDescription() != null){
             temp.setDescription(newSchedule.getDescription());
         }
 
@@ -123,6 +123,22 @@ public class ScheduleController {
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     public ResponseEntity<?> deleteScheduleEntry(@PathVariable Integer id){
         if (repo.findById(id).isPresent()) {
+            ScheduleEntity temp = repo.findById(id).get();
+            if (!temp.getDepartment().equals(null)){
+                depRepo.findBySchedule(temp).getSchedule().remove(temp);
+                depRepo.save(temp.getDepartment());
+            }
+            if (!temp.getSubject().equals(null)){
+                subRepo.findBySchedule(temp).getSchedule().remove(temp);
+                subRepo.save(temp.getSubject());
+
+            }
+            if (!temp.getTeacher().equals(null)){
+                teachRepo.findBySchedule(temp).getSchedule().remove(temp);
+                teachRepo.save(temp.getTeacher());
+
+            }
+
             repo.deleteById(id);
             return new ResponseEntity<RESTError>(new RESTError(1, "Schedule entry deleted"), HttpStatus.OK);
         }
@@ -139,5 +155,5 @@ public class ScheduleController {
         return new ResponseEntity<RESTError>(new RESTError(1, "Schedule entry not found"), HttpStatus.NOT_FOUND);
     }
 
-//    TODO napisati metodu koja svim odeljenjima od 1. do 4. razreda dodeljuje sve predmete za tu godinu razrednom staresini, nazvati je autoAssign
+
 }

@@ -29,9 +29,7 @@ public class DepartmentEntity {
     @OneToOne(mappedBy = "headOfDepartment")
     private TeacherEntity headTeacher;
 
-    public TeacherEntity getHeadTeacher() {
-        return headTeacher;
-    }
+
 
     //veza odeljenja i liste profesora, odeljenja i predmeta
     @OneToMany(cascade = CascadeType.REFRESH, fetch = FetchType.LAZY, mappedBy = "department")
@@ -56,6 +54,10 @@ public class DepartmentEntity {
 
     public void setSchedule(List<ScheduleEntity> schedule) {
         this.schedule = schedule;
+    }
+
+    public TeacherEntity getHeadTeacher() {
+        return headTeacher;
     }
 
     public void setHeadTeacher(TeacherEntity headTeacher) {
