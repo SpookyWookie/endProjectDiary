@@ -24,6 +24,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -62,6 +63,9 @@ public class AdministratorController {
     @Autowired
     private UserRepository userRepo;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @RequestMapping
     public ResponseEntity<?> getDb(){
         return new ResponseEntity<List<UserEntity>>((List<UserEntity>)userRepo.findAll(), HttpStatus.OK);
@@ -69,7 +73,8 @@ public class AdministratorController {
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<?> addAdministrator(@RequestBody AdministratorEntity admin){
-        admin.setRole(EUserRole.ROLE_ADMINISTRATOR);
+        admin.getRoles().add(EUserRole.ROLE_ADMINISTRATOR);
+        admin.setPassword(passwordEncoder.encode(admin.getPassword()));
         return new ResponseEntity<AdministratorEntity>(adminRepo.save(admin), HttpStatus.OK);
     }
 
@@ -130,7 +135,7 @@ public class AdministratorController {
         return new ResponseEntity<RESTError>(new RESTError(1, "Administrator not found"), HttpStatus.NOT_FOUND);
     }
 //TODO RADE SVE 3 DOWNLOAD METODE MAMU IM JEBEM, POSTMAN JE GOVNO!!!
-    @RequestMapping(value = "/log", produces = MediaType.TEXT_PLAIN_VALUE)
+    @RequestMapping(value = "/log", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public @ResponseBody  ResponseEntity<?> logDownload() throws IOException{
         return fileHandler.logDownload();
 
@@ -165,11 +170,11 @@ public class AdministratorController {
 
 //TODO This returns a page that loads log, for a file rename return value to byte[]
     @RequestMapping(value = "/log1", method = RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
-    public @ResponseBody /*byte[]*/ ResponseEntity getFile() throws IOException {
-//        InputStream in = new FileInputStream(new File("logs/spring-boot-logging.log"));
-//        return IOUtils.toByteArray(in);
+    public @ResponseBody byte[] /*ResponseEntity*/ getFile() throws IOException {
+        InputStream in = new FileInputStream(new File("logs/spring-boot-logging.log"));
+        return IOUtils.toByteArray(in);
 
-        return new ResponseEntity(fileHandler.getFile(),HttpStatus.OK);
+        /*return new ResponseEntity(fileHandler.getFile(),HttpStatus.OK);*/
     }
 
 

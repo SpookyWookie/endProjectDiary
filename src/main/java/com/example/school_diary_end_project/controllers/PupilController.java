@@ -3,8 +3,10 @@ package com.example.school_diary_end_project.controllers;
 import com.example.school_diary_end_project.controllers.util.RESTError;
 import com.example.school_diary_end_project.entities.DepartmentEntity;
 import com.example.school_diary_end_project.entities.PupilEntity;
+import com.example.school_diary_end_project.entities.dto.PupilDto;
 import com.example.school_diary_end_project.entities.enums.EUserRole;
 import com.example.school_diary_end_project.repositories.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,15 +39,58 @@ public class PupilController {
     @Autowired
     private GradeRepository gradeRepo;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @RequestMapping
     public ResponseEntity<?> getDb() {
         return new ResponseEntity<List<PupilEntity>>((List<PupilEntity>) pupilRepo.findAll(), HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<?> addPupil(@RequestBody PupilEntity newPupil) {
-        newPupil.setRole(EUserRole.ROLE_PUPIL);
-        return new ResponseEntity<PupilEntity>(pupilRepo.save(newPupil), HttpStatus.OK);
+    public ResponseEntity<?> addPupil(@RequestBody PupilDto newPupil) {
+
+        PupilEntity temp = new PupilEntity();
+
+        if (newPupil.getBirthdate() != null) {
+            temp.setBirthdate(newPupil.getBirthdate());
+        }
+
+        if (newPupil.getEmail() != null){
+            temp.setEmail(newPupil.getEmail());
+        }
+
+        if (newPupil.getJmbg() != null){
+            temp.setJmbg(newPupil.getJmbg());
+        }
+
+        if (newPupil.getName() != null){
+
+            temp.setName(newPupil.getName());
+        }
+
+        if (newPupil.getSurname() != null){
+            temp.setSurname(newPupil.getSurname());
+
+        }
+
+        if (newPupil.getUsername() != null){
+            temp.setUsername(newPupil.getUsername());
+
+        }
+
+        if (newPupil.getPassword() != null){
+            temp.setPassword(passwordEncoder.encode(newPupil.getPassword()));
+        }
+
+
+
+        temp.getRoles().add(EUserRole.ROLE_PUPIL);
+        if (newPupil.getPassword() != null){
+            newPupil.setPassword(passwordEncoder.encode(newPupil.getPassword()));
+
+        }
+        return new ResponseEntity<PupilEntity>(pupilRepo.save(temp), HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/{id}")

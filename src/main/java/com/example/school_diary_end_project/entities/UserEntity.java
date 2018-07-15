@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @JsonIgnoreProperties({"Handler", "hibernateLazyInitializer"})
@@ -39,8 +40,8 @@ public abstract class UserEntity {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "d.M.yyyy")
     private LocalDate birthdate;
 
-    @Column
-    private EUserRole role;
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<EUserRole> roles;
 
     public void setId(Integer id) {
         this.id = id;
@@ -74,9 +75,7 @@ public abstract class UserEntity {
         this.birthdate = birthdate;
     }
 
-    public void setRole(EUserRole role) {
-        this.role = role;
-    }
+
 
     public Integer getId() {
         return id;
@@ -110,8 +109,12 @@ public abstract class UserEntity {
         return birthdate;
     }
 
-    public EUserRole getRole() {
-        return role;
+    public List<EUserRole> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<EUserRole> roles) {
+        this.roles = roles;
     }
 
     public UserEntity() {

@@ -11,6 +11,7 @@ import com.example.school_diary_end_project.repositories.TeacherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,6 +33,9 @@ public class TeacherController {
     @Autowired
     private ScheduleRepository scheduleRepo;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @RequestMapping
     public ResponseEntity<?> getDb() {
         return new ResponseEntity<List<TeacherEntity>>((List<TeacherEntity>) teachRepo.findAll(), HttpStatus.OK);
@@ -40,7 +44,8 @@ public class TeacherController {
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<?> addTeacher(@RequestBody TeacherEntity teacher) {
-        teacher.setRole(EUserRole.ROLE_TEACHER);
+        teacher.getRoles().add(EUserRole.ROLE_TEACHER);
+        teacher.setPassword(passwordEncoder.encode(teacher.getPassword()));
         return new ResponseEntity<TeacherEntity>(teachRepo.save(teacher), HttpStatus.OK);
     }
 
