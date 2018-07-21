@@ -8,10 +8,14 @@ import com.example.school_diary_end_project.repositories.SubjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/subjects")
@@ -26,6 +30,10 @@ public class SubjectController {
     @Autowired
     private ScheduleRepository scheduleRepo;
 
+    private String createErrorMessage(BindingResult result) {
+        return result.getAllErrors().stream().map(ObjectError::getDefaultMessage).collect(Collectors.joining(" "));
+    }
+
 
     @RequestMapping
     public ResponseEntity<?> getDb() {
@@ -33,13 +41,19 @@ public class SubjectController {
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<?> addSubject(@RequestBody SubjectEntity newSubject) {
+    public ResponseEntity<?> addSubject(@Valid @RequestBody SubjectEntity newSubject, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()){
+            return new ResponseEntity<>(createErrorMessage(bindingResult), HttpStatus.BAD_REQUEST);
+        }
         return new ResponseEntity<SubjectEntity>(subjectRepo.save(newSubject), HttpStatus.OK);
 
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-    public ResponseEntity<?> editSubject(@RequestBody SubjectEntity subject, @PathVariable Integer id) {
+    public ResponseEntity<?> editSubject(@Valid @RequestBody SubjectEntity subject, @PathVariable Integer id, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()){
+            return new ResponseEntity<>(createErrorMessage(bindingResult), HttpStatus.BAD_REQUEST);
+        }
         if (subjectRepo.findById(id).isPresent()) {
             SubjectEntity temp = subjectRepo.findById(id).get();
             if (!subject.getLessonsInAWeek().equals(null)) {

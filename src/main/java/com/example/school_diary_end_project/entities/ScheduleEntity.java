@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Null;
 
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"teacher", "subject", "department"})})
@@ -20,17 +22,21 @@ public class ScheduleEntity {
     private Integer id;
 
 
+    @Null
     @Column
     private String description;
 
+    @NotNull
     @ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
     @JoinColumn(name = "teacher")
     private TeacherEntity teacher;
 
+    @NotNull
     @ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
     @JoinColumn(name = "subject")
     private SubjectEntity subject;
 
+    @NotNull
     @ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
     @JoinColumn(name = "department")
     private DepartmentEntity department;

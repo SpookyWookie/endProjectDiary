@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 
 
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.context.annotation.Bean;
@@ -43,8 +44,13 @@ public class GlobalExceptioHandlerController {
         res.sendError(HttpStatus.FORBIDDEN.value(), "Access denied");
     }
 
-    @ExceptionHandler(Exception.class)
+    /*@ExceptionHandler(Exception.class)
     public void handleException(HttpServletResponse res) throws IOException {
         res.sendError(HttpStatus.BAD_REQUEST.value(), "Something went wrong");
+    }*/
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public void handleExpiredJWTException(HttpServletResponse res) throws IOException {
+        res.sendError(HttpStatus.BAD_REQUEST.value(), "Token expired, please log in again");
     }
 }

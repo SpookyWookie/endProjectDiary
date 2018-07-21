@@ -6,11 +6,17 @@ import com.example.school_diary_end_project.entities.PupilEntity;
 import com.example.school_diary_end_project.entities.dto.PupilDto;
 import com.example.school_diary_end_project.entities.enums.EUserRole;
 import com.example.school_diary_end_project.repositories.*;
+import org.springframework.http.MediaType;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,6 +24,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMethod;
+
+import javax.validation.Valid;
+
 
 
 @RestController
@@ -42,50 +51,71 @@ public class PupilController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    private String createErrorMessage(BindingResult result) {
+        return result.getAllErrors().stream().map(ObjectError::getDefaultMessage).collect(Collectors.joining(" "));
+    }
+
     @RequestMapping
     public ResponseEntity<?> getDb() {
         return new ResponseEntity<List<PupilEntity>>((List<PupilEntity>) pupilRepo.findAll(), HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<?> addPupil(@RequestBody PupilDto newPupil) {
+    public ResponseEntity<?> addPupil(@Valid @RequestBody PupilDto newPupil, BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()){
+            return new ResponseEntity<>(createErrorMessage(bindingResult), HttpStatus.BAD_REQUEST);
+        }
 
         PupilEntity temp = new PupilEntity();
 
-        if (newPupil.getBirthdate() != null) {
+
             temp.setBirthdate(newPupil.getBirthdate());
-        }
 
-        if (newPupil.getEmail() != null){
+
+
+        if(userRepository.existsByEmail(newPupil.getEmail())){
+            return new ResponseEntity<>(new RESTError(15, "Email already in use" ), HttpStatus.BAD_REQUEST);
+        }
             temp.setEmail(newPupil.getEmail());
-        }
 
-        if (newPupil.getJmbg() != null){
+
+            if(userRepository.existsByJmbg(newPupil.getJmbg())){
+                return new ResponseEntity<>(new RESTError(15, "JMBG already in use" ), HttpStatus.BAD_REQUEST);
+            }
+
             temp.setJmbg(newPupil.getJmbg());
-        }
 
-        if (newPupil.getName() != null){
+
 
             temp.setName(newPupil.getName());
-        }
 
-        if (newPupil.getSurname() != null){
+
+
             temp.setSurname(newPupil.getSurname());
 
-        }
 
-        if (newPupil.getUsername() != null){
+
+            if (userRepository.existsByUsername(newPupil.getUsername())){
+                return new ResponseEntity<>(new RESTError(15, "Username already exists" ), HttpStatus.BAD_REQUEST);
+            }
             temp.setUsername(newPupil.getUsername());
 
-        }
 
-        if (newPupil.getPassword() != null){
+
+
             temp.setPassword(passwordEncoder.encode(newPupil.getPassword()));
-        }
 
 
 
-        temp.getRoles().add(EUserRole.ROLE_PUPIL);
+
+        List<EUserRole> list = new ArrayList<>();
+        list.add(EUserRole.ROLE_PUPIL);
+
+        temp.setRoles(list);
         if (newPupil.getPassword() != null){
             newPupil.setPassword(passwordEncoder.encode(newPupil.getPassword()));
 
@@ -94,7 +124,13 @@ public class PupilController {
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/{id}")
-    public ResponseEntity<?> editPupil(@PathVariable Integer id, @RequestBody PupilEntity pupilon) {
+    public ResponseEntity<?> editPupil(@Valid @PathVariable Integer id, @RequestBody PupilDto pupilon, BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()){
+            return new ResponseEntity<>(createErrorMessage(bindingResult), HttpStatus.BAD_REQUEST);
+        }
+
+
         if (pupilRepo.findById(id).isPresent()) {
             PupilEntity temp = pupilRepo.findById(id).get();
 
@@ -127,12 +163,12 @@ public class PupilController {
     }
 
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/delete/{id}", method = RequestMethod.DELETE)
     public ResponseEntity<?> deletePupil(@PathVariable Integer id) {
         if (pupilRepo.findById(id).isPresent()) {
 
             PupilEntity temp = pupilRepo.findById(id).get();
-            String exit = String.format("Pupil %s %s has been deleted",temp.getName(), temp.getSurname());
+//            String exit = String.format("Pupil has been deleted",temp.getName(), temp.getSurname());
 //            Deletes a parent if a parent has only one child
 
             if (temp.getParent() !=null){
@@ -164,7 +200,7 @@ public class PupilController {
 
             pupilRepo.deleteById(id);
             if (!pupilRepo.findById(id).isPresent()) {
-                return new ResponseEntity<String>(exit, HttpStatus.OK);
+                return new ResponseEntity<RESTError>(new RESTError(10, "Pupil deleted"), HttpStatus.OK);
             }
         }
         return new ResponseEntity<RESTError>(new RESTError(1, "Pupil not found"), HttpStatus.NOT_FOUND);
@@ -191,6 +227,7 @@ public class PupilController {
         return new ResponseEntity<RESTError>(new RESTError(1, "Pupil not found"), HttpStatus.NOT_FOUND);
     }
 
+//    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR", "ROLE_PARENT", "ROLE_PUPIL"})
     @RequestMapping("/{id}")
     public ResponseEntity<?> findById(@PathVariable Integer id){
         if (pupilRepo.findById(id).isPresent()){

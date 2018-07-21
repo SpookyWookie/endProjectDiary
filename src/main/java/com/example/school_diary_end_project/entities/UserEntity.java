@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Past;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -17,26 +19,34 @@ public abstract class UserEntity {
     @GeneratedValue
     private Integer id;
 
-    @Column
+    @NotNull
+    @Column(unique = true, nullable = false)
     private String username;
 
-    @Column
+    @NotNull
+    @Column(nullable = false)
     @JsonIgnore
     private String password;
 
-    @Column
+    @NotNull
+    @Column(unique = true, nullable = false)
     private String jmbg;
 
-    @Column
+    @NotNull
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @Column
+    @NotNull
+    @Column(nullable = false)
     private String name;
 
-    @Column
+    @NotNull
+    @Column(nullable = false)
     private String surname;
 
-    @Column
+    @NotNull
+    @Past
+    @Column(nullable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "d.M.yyyy")
     private LocalDate birthdate;
 

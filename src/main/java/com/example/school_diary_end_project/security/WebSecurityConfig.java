@@ -40,9 +40,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         // Entry points
         http.authorizeRequests()//
+//                .antMatchers("/pupils").permitAll()
+                .antMatchers("/**").permitAll()
+                /*.antMatchers("/grades/*").hasAnyRole("ADMINISTRATOR", "TEACHER")
                 .antMatchers("/users/signin").permitAll()//
                 .antMatchers("/users/me").hasAnyRole("ADMINISTRATOR", "TEACHER", "PUPIL", "PARENT")
-                .antMatchers("/**").hasRole("ADMINISTRATOR")
+                .antMatchers("/**").hasRole("ADMINISTRATOR")*/
                 //
                 // Disallow everything else..
                 .anyRequest().authenticated();

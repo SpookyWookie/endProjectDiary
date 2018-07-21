@@ -9,10 +9,14 @@ import com.example.school_diary_end_project.repositories.TeacherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/departments")
@@ -30,6 +34,10 @@ public class DepartmentController {
     @Autowired
     private ScheduleRepository scheduleRepo;
 
+    private String createErrorMessage(BindingResult result) {
+        return result.getAllErrors().stream().map(ObjectError::getDefaultMessage).collect(Collectors.joining(" "));
+    }
+
 
 
     @RequestMapping
@@ -42,13 +50,21 @@ public class DepartmentController {
 //    TODO hipoteticki ofc
 //    And disable ability to change department enum
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<?> addDepartment(@RequestBody DepartmentEntity newDepartment) {
+    public ResponseEntity<?> addDepartment(@Valid @RequestBody DepartmentEntity newDepartment, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()){
+            return new ResponseEntity<>(createErrorMessage(bindingResult), HttpStatus.BAD_REQUEST);
+        }
 
         return new ResponseEntity<DepartmentEntity>(departmentRepo.save(newDepartment), HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/{id}")
-    public ResponseEntity<?> editDepartment(@RequestBody DepartmentEntity editDepartment, @PathVariable Integer id) {
+    public ResponseEntity<?> editDepartment(@Valid @RequestBody DepartmentEntity editDepartment, @PathVariable Integer id, BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()){
+            return new ResponseEntity<>(createErrorMessage(bindingResult), HttpStatus.BAD_REQUEST);
+        }
+
         if (departmentRepo.findById(id).isPresent()) {
             DepartmentEntity temp = departmentRepo.findById(id).get();
             if (!editDepartment.getEnumeration().equals(null)) {

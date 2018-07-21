@@ -12,13 +12,22 @@ import com.example.school_diary_end_project.repositories.SubjectRepository;
 import com.example.school_diary_end_project.repositories.TeacherRepository;
 import com.example.school_diary_end_project.services.EmailService;
 import com.example.school_diary_end_project.services.ValidationMethods;
+
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
+import javax.naming.Binding;
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/grades")
@@ -44,13 +53,24 @@ public class GradeController {
     @Autowired
     private EmailService emailService;
 
+    private final Logger logger = (Logger) LoggerFactory.getLogger(this.getClass());
+
+    private String createErrorMessage(BindingResult result) {
+        return result.getAllErrors().stream().map(ObjectError::getDefaultMessage).collect(Collectors.joining(" "));
+    }
+
     @RequestMapping
     public ResponseEntity<?> getDb() {
         return new ResponseEntity<List<GradeEntity>>((List<GradeEntity>) gradeRepo.findAll(), HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<?> addGrade(@RequestBody GradeDto newGrade) {
+    public ResponseEntity<?> addGrade(@Valid @RequestBody GradeDto newGrade, BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()){
+            return new ResponseEntity<>(createErrorMessage(bindingResult), HttpStatus.BAD_REQUEST);
+        }
+
         GradeEntity graded = new GradeEntity();
         if (pupilRepo.findById(newGrade.getPupilId()).isPresent()
                 && teachRepo.findById(newGrade.getProfessorId()).isPresent()
@@ -70,18 +90,24 @@ public class GradeController {
                 }
 
 
+                logger.info("Grade created");
                 return new ResponseEntity<GradeEntity>(gradeRepo.save(graded), HttpStatus.OK);
             }
             return new ResponseEntity<RESTError>(new RESTError(1, "Unable to assign requested grade"),
                     HttpStatus.NOT_FOUND);
 
         }
+        logger.info("Entity not found");
         return new ResponseEntity<RESTError>(new RESTError(1, "Pupil, Teacher or Subject not found"),
                 HttpStatus.NOT_FOUND);
 
     }
     @RequestMapping(method = RequestMethod.PUT, value = "/{id}")
-    public ResponseEntity<?> editGrade(@RequestBody GradeEntity editGrade, @PathVariable Integer id) {
+    public ResponseEntity<?> editGrade(@Valid @RequestBody GradeEntity editGrade, @PathVariable Integer id, BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()){
+            return new ResponseEntity<>(createErrorMessage(bindingResult), HttpStatus.BAD_REQUEST);
+        }
         if (gradeRepo.findById(id).isPresent()) {
             GradeEntity temp = gradeRepo.findById(id).get();
             temp.setComment(editGrade.getComment());

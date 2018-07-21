@@ -3,8 +3,10 @@ package com.example.school_diary_end_project.entities;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Entity
@@ -19,18 +21,22 @@ public class SubjectEntity {
     private Integer id;
 
     @Column
+    @NotNull(message = "Name must be provided")
     private String name;
 
     @Column
     private String description;
 
     @Column
+    @NotNull(message = "lessons must be provided")
     private Integer lessonsInAWeek;
 
     @Column
+    @NotNull(message = "semester fund must be provided")
     private Integer semesterlessonsfund;
 
     @Column
+    @NotNull(message = "Year must be provided")
     private Integer year;
 
     // veza predmeta, profesora i odeljenja koja pohadaju predmet

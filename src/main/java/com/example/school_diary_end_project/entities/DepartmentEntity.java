@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Entity
@@ -19,9 +20,11 @@ public class DepartmentEntity {
     private Integer id;
 
     @Column
+    @NotNull(message = "Department required")
     private EDepartmentEnum enumeration;
-
+//TODO Change enumeration so that enum includes year
     @Column
+    @NotNull(message = "Year required")
     private Integer year;
 
 

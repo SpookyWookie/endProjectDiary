@@ -11,9 +11,13 @@ import com.example.school_diary_end_project.repositories.TeacherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/schedule")
@@ -31,13 +35,21 @@ public class ScheduleController {
     @Autowired
     private DepartmentRepository depRepo;
 
+    private String createErrorMessage(BindingResult result) {
+        return result.getAllErrors().stream().map(ObjectError::getDefaultMessage).collect(Collectors.joining(" "));
+    }
+
     @RequestMapping
     public ResponseEntity<?> getDb(){
         return new ResponseEntity<List<ScheduleEntity>>((List<ScheduleEntity>)repo.findAll(), HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<?> addSchedule (@RequestBody ScheduleDTO newSchedule){
+    public ResponseEntity<?> addSchedule (@RequestBody ScheduleDTO newSchedule, BindingResult bindingResult){
+
+        if (bindingResult.hasErrors()){
+            return new ResponseEntity<>(createErrorMessage(bindingResult), HttpStatus.BAD_REQUEST);
+        }
 
         ScheduleEntity temp = new ScheduleEntity();
 
@@ -79,8 +91,12 @@ public class ScheduleController {
 
 
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-    public ResponseEntity<?> updateSchedule(@RequestBody ScheduleDTO schedule, @PathVariable Integer id){
+    public ResponseEntity<?> updateSchedule(@Valid  @RequestBody ScheduleDTO schedule, @PathVariable Integer id, BindingResult bindingResult){
         ScheduleEntity temp = repo.findById(id).get();
+
+        if (bindingResult.hasErrors()){
+            return new ResponseEntity<>(createErrorMessage(bindingResult), HttpStatus.BAD_REQUEST);
+        }
 
         if (repo.findById(id).isPresent()) {
             if (!schedule.getDescription().equals(null)){

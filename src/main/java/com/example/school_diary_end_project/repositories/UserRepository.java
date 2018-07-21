@@ -10,4 +10,9 @@ public interface UserRepository extends CrudRepository<UserEntity, Integer> {
 
     public void deleteByUsername(String userName);
 
+    public Boolean existsByJmbg(String jmbg);
+
+    public Boolean existsByEmail(String email);
+
+
 }

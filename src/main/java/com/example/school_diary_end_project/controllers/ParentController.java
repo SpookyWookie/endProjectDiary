@@ -9,9 +9,11 @@ import com.example.school_diary_end_project.repositories.PupilRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -34,8 +36,14 @@ public class ParentController {
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<?> addParent(@RequestBody ParentEntity parent){
-        parent.getRoles().add(EUserRole.ROLE_PARENT);
-        parent.setPassword(passwordEncoder.encode(parent.getPassword()));
+
+        List<EUserRole> list = new ArrayList<>();
+        list.add(EUserRole.ROLE_PARENT);
+        parent.setRoles(list);
+        if (parent.getPassword() != null){
+            parent.setPassword(passwordEncoder.encode(parent.getPassword()));
+        }
+
 
         return new ResponseEntity<ParentEntity>(parentRepo.save(parent), HttpStatus.OK);
     }
@@ -98,6 +106,7 @@ public class ParentController {
         return new ResponseEntity<RESTError>(new RESTError(1, "Parent not found"), HttpStatus.NOT_FOUND);
     }
 
+    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR", "ROLE_PARENT"})
     @RequestMapping("/{id}")
     public ResponseEntity<?> findById (@PathVariable Integer id){
         if (parentRepo.findById(id).isPresent()) {
@@ -106,6 +115,8 @@ public class ParentController {
         return new ResponseEntity<RESTError>(new RESTError(1, "Parent not found"), HttpStatus.NOT_FOUND);
     }
 
+
+//    TODO create removeChild endpoint
     @RequestMapping( value="/{id]/child/{idpupil}", method = RequestMethod.PUT)
     public ResponseEntity<?> addChild (@PathVariable Integer id, @PathVariable Integer idpupil){
         if (pupilRepo.findById(idpupil).isPresent() && parentRepo.findById(id).isPresent()){

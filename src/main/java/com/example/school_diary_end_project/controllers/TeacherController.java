@@ -11,9 +11,11 @@ import com.example.school_diary_end_project.repositories.TeacherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -44,11 +46,19 @@ public class TeacherController {
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<?> addTeacher(@RequestBody TeacherEntity teacher) {
-        teacher.getRoles().add(EUserRole.ROLE_TEACHER);
-        teacher.setPassword(passwordEncoder.encode(teacher.getPassword()));
+        List<EUserRole> list = new ArrayList<>();
+        list.add(EUserRole.ROLE_TEACHER);
+        teacher.setRoles(list);
+
+        if (teacher.getPassword() != null){
+            teacher.setPassword(passwordEncoder.encode(teacher.getPassword()));
+
+        }
         return new ResponseEntity<TeacherEntity>(teachRepo.save(teacher), HttpStatus.OK);
     }
 
+
+    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR"})
     @RequestMapping(method = RequestMethod.PUT, value = "/{id}")
     public ResponseEntity<?> editTeacher(@RequestBody TeacherEntity teacher, @PathVariable Integer id) {
         if (teachRepo.findById(id).isPresent()) {
@@ -93,6 +103,7 @@ public class TeacherController {
         return new ResponseEntity<RESTError>(new RESTError(1, "Teacher not found"), HttpStatus.NOT_FOUND);
     }
 
+    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR"})
     @RequestMapping(method = RequestMethod.DELETE, value = "/{id}")
     public ResponseEntity<?> deleteTeacher(@PathVariable Integer id) {
         if (teachRepo.findById(id).isPresent()) {
@@ -123,6 +134,7 @@ public class TeacherController {
 
     }
 
+    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR"})
     @RequestMapping("/{id}")
     private ResponseEntity<?> findById(@PathVariable Integer id){
         if (teachRepo.findById(id).isPresent()){
@@ -134,6 +146,7 @@ public class TeacherController {
 
 
     //	dodeljuje razrednog staresinu odeljenju
+    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR"})
     @RequestMapping(value = "/{id}/department/{idd}", method = RequestMethod.PUT)
     public ResponseEntity<?> setHeadOfDepartment(@PathVariable Integer id, @PathVariable Integer idd){
         if (teachRepo.findById(id).isPresent() && depoRepo.findById(idd).isPresent()) {
@@ -147,6 +160,7 @@ public class TeacherController {
 
 
     //	oduzima staresinstvo razrednom
+    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR"})
     @RequestMapping(value = "/{id}/removeDepartment/{idd}", method = RequestMethod.PUT)
     public ResponseEntity<?> removeHeadOfDepartment(@PathVariable Integer id, @PathVariable Integer idd){
         if (teachRepo.findById(id).isPresent() && teachRepo.findById(id).get().getHeadOfDepartment() != null) {
@@ -164,27 +178,28 @@ public class TeacherController {
 
 
 // Removes all assigned references
+    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR"})
     @RequestMapping(method = RequestMethod.PUT, value = "/{id}/unAssign")
-    public ResponseEntity<?> removeAllReferences(@PathVariable Integer id){
-        if(teachRepo.findById(id).isPresent()){
-            TeacherEntity temp = teachRepo.findById(id).get();
-            if (temp.getHeadOfDepartment() != null){
-                depoRepo.findById(temp.getHeadOfDepartment().getId()).get().setHeadTeacher(null);
-                depoRepo.save(depoRepo.findById(temp.getHeadOfDepartment().getId()).get());
-            }
+        public ResponseEntity<?> removeAllReferences(@PathVariable Integer id){
+            if(teachRepo.findById(id).isPresent()){
+                TeacherEntity temp = teachRepo.findById(id).get();
+                if (temp.getHeadOfDepartment() != null){
+                    depoRepo.findById(temp.getHeadOfDepartment().getId()).get().setHeadTeacher(null);
+                    depoRepo.save(depoRepo.findById(temp.getHeadOfDepartment().getId()).get());
+                }
 
-            if (temp.getGrades().size() > 0){
-                gradeRepo.deleteAllByTeacher(temp);
-            }
+                if (temp.getGrades().size() > 0){
+                    gradeRepo.deleteAllByTeacher(temp);
+                }
 
-            if (temp.getSchedule().size() > 0){
-                scheduleRepo.deleteAllByTeacher(temp);
-            }
+                if (temp.getSchedule().size() > 0){
+                    scheduleRepo.deleteAllByTeacher(temp);
+                }
 
-            return new ResponseEntity<TeacherEntity>(teachRepo.save(teachRepo.findById(id).get()), HttpStatus.OK);
+                return new ResponseEntity<TeacherEntity>(teachRepo.save(teachRepo.findById(id).get()), HttpStatus.OK);
+            }
+            return new ResponseEntity<RESTError>(new RESTError(1, "Teacher not found"), HttpStatus.NOT_FOUND);
+
         }
-        return new ResponseEntity<RESTError>(new RESTError(1, "Teacher not found"), HttpStatus.NOT_FOUND);
-
-    }
 
 }

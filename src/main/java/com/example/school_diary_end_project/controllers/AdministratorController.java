@@ -44,6 +44,7 @@ import java.nio.file.Files;
 //import java.nio.file.Path;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -68,13 +69,18 @@ public class AdministratorController {
 
     @RequestMapping
     public ResponseEntity<?> getDb(){
-        return new ResponseEntity<List<UserEntity>>((List<UserEntity>)userRepo.findAll(), HttpStatus.OK);
+        return new ResponseEntity<List<AdministratorEntity>>((List<AdministratorEntity>)adminRepo.findAll(), HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<?> addAdministrator(@RequestBody AdministratorEntity admin){
-        admin.getRoles().add(EUserRole.ROLE_ADMINISTRATOR);
-        admin.setPassword(passwordEncoder.encode(admin.getPassword()));
+        List<EUserRole> list = new ArrayList<>();
+        list.add(EUserRole.ROLE_ADMINISTRATOR);
+        admin.setRoles(list);
+        if (admin.getPassword() != null){
+            admin.setPassword(passwordEncoder.encode(admin.getPassword()));
+        }
+
         return new ResponseEntity<AdministratorEntity>(adminRepo.save(admin), HttpStatus.OK);
     }
 

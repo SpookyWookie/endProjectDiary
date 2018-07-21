@@ -1,13 +1,20 @@
 package com.example.school_diary_end_project.entities.dto;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Null;
+
 public class ScheduleDTO {
 
+    @Null
     private String description;
 
+    @NotNull(message = "Subject needed")
     private Integer subjectid;
 
+    @NotNull(message = "Teacher needed")
     private Integer teacherid;
 
+    @NotNull(message = "Department needed")
     private Integer departmentid;
 
     public String getDescription() {
