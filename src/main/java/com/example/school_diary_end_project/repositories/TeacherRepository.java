@@ -7,4 +7,6 @@ import org.springframework.data.repository.CrudRepository;
 public interface TeacherRepository extends CrudRepository<TeacherEntity, Integer> {
 
     public TeacherEntity findBySchedule(ScheduleEntity schedule);
+
+//    public Boolean existsById(Integer id);
 }

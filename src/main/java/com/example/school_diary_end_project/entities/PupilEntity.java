@@ -1,8 +1,11 @@
 package com.example.school_diary_end_project.entities;
 
+import com.example.school_diary_end_project.entities.enums.EUserRole;
 import com.fasterxml.jackson.annotation.*;
 
 import javax.persistence.*;
+import javax.validation.constraints.Past;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.logging.Handler;
 
@@ -50,5 +53,12 @@ public class PupilEntity extends UserEntity {
     }
 
     public PupilEntity() {
+    }
+
+    public PupilEntity(PupilEntity pupil) {
+        super(pupil.getId(), pupil.getUsername(), pupil.getPassword(), pupil.getJmbg(), pupil.getEmail(), pupil.getName(), pupil.getSurname(), pupil.getBirthdate(), pupil.getRoles());
+        this.parent = pupil.getParent();
+        this.grades = pupil.getGrades();
+        this.department = pupil.getDepartment();
     }
 }

@@ -19,32 +19,32 @@ public abstract class UserEntity {
     @GeneratedValue
     private Integer id;
 
-    @NotNull
+//    @NotNull(message = "Name must not be null")
     @Column(unique = true, nullable = false)
     private String username;
 
-    @NotNull
+//    @NotNull(message = "Password must not be null")
     @Column(nullable = false)
     @JsonIgnore
     private String password;
 
-    @NotNull
+//    @NotNull(message = "JMBG must not be null")
     @Column(unique = true, nullable = false)
     private String jmbg;
 
-    @NotNull
+//    @NotNull(message = "Email must not be null")
     @Column(nullable = false, unique = true)
     private String email;
 
-    @NotNull
+//    @NotNull(message = "Name must not be null")
     @Column(nullable = false)
     private String name;
 
-    @NotNull
+//    @NotNull(message = "Surname must not be null")
     @Column(nullable = false)
     private String surname;
 
-    @NotNull
+//    @NotNull(message = "Birthdate must not be null")
     @Past
     @Column(nullable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "d.M.yyyy")
@@ -128,5 +128,17 @@ public abstract class UserEntity {
     }
 
     public UserEntity() {
+    }
+
+    public UserEntity(Integer id, String username, String password, String jmbg, String email, String name, String surname, @Past LocalDate birthdate, List<EUserRole> roles) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.jmbg = jmbg;
+        this.email = email;
+        this.name = name;
+        this.surname = surname;
+        this.birthdate = birthdate;
+        this.roles = roles;
     }
 }

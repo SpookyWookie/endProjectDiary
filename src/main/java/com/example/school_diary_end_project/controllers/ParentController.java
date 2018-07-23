@@ -106,7 +106,7 @@ public class ParentController {
         return new ResponseEntity<RESTError>(new RESTError(1, "Parent not found"), HttpStatus.NOT_FOUND);
     }
 
-    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR", "ROLE_PARENT"})
+//    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR", "ROLE_PARENT"})
     @RequestMapping("/{id}")
     public ResponseEntity<?> findById (@PathVariable Integer id){
         if (parentRepo.findById(id).isPresent()) {

@@ -1,5 +1,6 @@
 package com.example.school_diary_end_project.entities.dto;
 
+import com.example.school_diary_end_project.entities.PupilEntity;
 import com.example.school_diary_end_project.entities.enums.EUserRole;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -10,6 +11,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 public class PupilDto {
+
+    private Integer id;
 
 
 
@@ -103,6 +106,25 @@ public class PupilDto {
         this.birthdate = birthdate;
     }
 
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
     public PupilDto() {
     }
+
+//    public PupilDto(PupilEntity pupil){
+//        this.id = pupil.getId();
+//        this.name = pupil.getName();
+//        this.surname = pupil.getSurname();
+//        this.password = pupil.getPassword();
+//        this.username = pupil.getUsername();
+//        this.birthdate = pupil.getBirthdate();
+//        this.jmbg = pupil.getJmbg();
+//
+//    }
 }

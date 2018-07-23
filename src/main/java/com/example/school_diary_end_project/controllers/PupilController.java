@@ -6,13 +6,13 @@ import com.example.school_diary_end_project.entities.PupilEntity;
 import com.example.school_diary_end_project.entities.dto.PupilDto;
 import com.example.school_diary_end_project.entities.enums.EUserRole;
 import com.example.school_diary_end_project.repositories.*;
+import com.example.school_diary_end_project.services.UserService;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +21,6 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.validation.Valid;
 
@@ -38,6 +35,9 @@ public class PupilController {
 
     @Autowired
     private SubjectRepository subRepo;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private ParentRepository parentRepo;
@@ -59,8 +59,14 @@ public class PupilController {
     }
 
     @RequestMapping
-    public ResponseEntity<?> getDb() {
-        return new ResponseEntity<List<PupilEntity>>((List<PupilEntity>) pupilRepo.findAll(), HttpStatus.OK);
+    public ResponseEntity<?> getDb(@RequestParam(required = false) String username) {
+        if(username == null){
+            return new ResponseEntity<List<PupilEntity>>((List<PupilEntity>) pupilRepo.findAll(), HttpStatus.OK);
+        }else {
+            return new ResponseEntity<List<PupilEntity>>(userService.findByUsername(username), HttpStatus.OK);
+        }
+
+
     }
 
     @RequestMapping(method = RequestMethod.POST)

@@ -13,14 +13,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/teachers")
 public class TeacherController {
+
+
 
     @Autowired
     private TeacherRepository teachRepo;
@@ -38,6 +44,10 @@ public class TeacherController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    private String createErrorMessage(BindingResult result) {
+        return result.getAllErrors().stream().map(ObjectError::getDefaultMessage).collect(Collectors.joining(" "));
+    }
+
     @RequestMapping
     public ResponseEntity<?> getDb() {
         return new ResponseEntity<List<TeacherEntity>>((List<TeacherEntity>) teachRepo.findAll(), HttpStatus.OK);
@@ -45,7 +55,12 @@ public class TeacherController {
 
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<?> addTeacher(@RequestBody TeacherEntity teacher) {
+    public ResponseEntity<?> addTeacher(@Valid @RequestBody TeacherEntity teacher, BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()){
+            return new ResponseEntity<>(createErrorMessage(bindingResult), HttpStatus.BAD_REQUEST);
+        }
+
         List<EUserRole> list = new ArrayList<>();
         list.add(EUserRole.ROLE_TEACHER);
         teacher.setRoles(list);
@@ -58,9 +73,13 @@ public class TeacherController {
     }
 
 
-    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR"})
+//    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR"})
     @RequestMapping(method = RequestMethod.PUT, value = "/{id}")
-    public ResponseEntity<?> editTeacher(@RequestBody TeacherEntity teacher, @PathVariable Integer id) {
+    public ResponseEntity<?> editTeacher(@Valid @RequestBody TeacherEntity teacher, @PathVariable Integer id, BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()){
+            return new ResponseEntity<>(createErrorMessage(bindingResult), HttpStatus.BAD_REQUEST);
+        }
         if (teachRepo.findById(id).isPresent()) {
             TeacherEntity temp = teachRepo.findById(id).get();
 
@@ -103,7 +122,7 @@ public class TeacherController {
         return new ResponseEntity<RESTError>(new RESTError(1, "Teacher not found"), HttpStatus.NOT_FOUND);
     }
 
-    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR"})
+//    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR"})
     @RequestMapping(method = RequestMethod.DELETE, value = "/{id}")
     public ResponseEntity<?> deleteTeacher(@PathVariable Integer id) {
         if (teachRepo.findById(id).isPresent()) {
@@ -134,10 +153,10 @@ public class TeacherController {
 
     }
 
-    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR"})
+//    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR"})
     @RequestMapping("/{id}")
     private ResponseEntity<?> findById(@PathVariable Integer id){
-        if (teachRepo.findById(id).isPresent()){
+        if (teachRepo.existsById(id)){
             return new ResponseEntity<TeacherEntity>(teachRepo.findById(id).get(), HttpStatus.OK);
         }
         return new ResponseEntity<RESTError>(new RESTError(1, "Teacher not found"), HttpStatus.NOT_FOUND);
@@ -146,7 +165,7 @@ public class TeacherController {
 
 
     //	dodeljuje razrednog staresinu odeljenju
-    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR"})
+//    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR"})
     @RequestMapping(value = "/{id}/department/{idd}", method = RequestMethod.PUT)
     public ResponseEntity<?> setHeadOfDepartment(@PathVariable Integer id, @PathVariable Integer idd){
         if (teachRepo.findById(id).isPresent() && depoRepo.findById(idd).isPresent()) {
@@ -160,13 +179,14 @@ public class TeacherController {
 
 
     //	oduzima staresinstvo razrednom
-    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR"})
-    @RequestMapping(value = "/{id}/removeDepartment/{idd}", method = RequestMethod.PUT)
-    public ResponseEntity<?> removeHeadOfDepartment(@PathVariable Integer id, @PathVariable Integer idd){
+//    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR"})
+    @RequestMapping(value = "/{id}/removeDepartment", method = RequestMethod.PUT)
+    public ResponseEntity<?> removeHeadOfDepartment(@PathVariable Integer id){
         if (teachRepo.findById(id).isPresent() && teachRepo.findById(id).get().getHeadOfDepartment() != null) {
-            depoRepo.findById(idd).get().setHeadTeacher(null);
-            depoRepo.save(depoRepo.findById(id).get());
+//            depoRepo.findById(idd).get().setHeadTeacher(null);
+//            depoRepo.save(depoRepo.findById(id).get());
             teachRepo.findById(id).get().setHeadOfDepartment(null);
+            teachRepo.save(teachRepo.findById(id).get());
 
             return new ResponseEntity<TeacherEntity>(teachRepo.save(teachRepo.findById(id).get()), HttpStatus.OK);
         }
@@ -178,14 +198,13 @@ public class TeacherController {
 
 
 // Removes all assigned references
-    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR"})
+//    @Secured({"ROLE_TEACHER", "ROLE_ADMINISTRATOR"})
     @RequestMapping(method = RequestMethod.PUT, value = "/{id}/unAssign")
         public ResponseEntity<?> removeAllReferences(@PathVariable Integer id){
             if(teachRepo.findById(id).isPresent()){
                 TeacherEntity temp = teachRepo.findById(id).get();
                 if (temp.getHeadOfDepartment() != null){
-                    depoRepo.findById(temp.getHeadOfDepartment().getId()).get().setHeadTeacher(null);
-                    depoRepo.save(depoRepo.findById(temp.getHeadOfDepartment().getId()).get());
+                    temp.setHeadOfDepartment(null);
                 }
 
                 if (temp.getGrades().size() > 0){

@@ -1,8 +1,10 @@
 package com.example.school_diary_end_project.services;
 
 
+import com.example.school_diary_end_project.entities.PupilEntity;
 import com.example.school_diary_end_project.entities.UserEntity;
 import com.example.school_diary_end_project.exception.CustomException;
+import com.example.school_diary_end_project.repositories.PupilRepository;
 import com.example.school_diary_end_project.repositories.UserRepository;
 import com.example.school_diary_end_project.security.JwtTokenProvider;
 import jdk.internal.org.objectweb.asm.tree.TryCatchBlockNode;
@@ -17,6 +19,8 @@ import org.springframework.stereotype.Service;
 import sun.applet.Main;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -31,6 +35,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private PupilRepository pupilRepository;
 
 
 
@@ -70,6 +77,12 @@ public class UserServiceImpl implements UserService {
 
     public UserEntity whoami(HttpServletRequest req) {
         return userRepository.findByUsername(jwtTokenProvider.getUsername(jwtTokenProvider.resolveToken(req)));
+    }
+
+
+    public List<PupilEntity> findByUsername(String username) {
+        return pupilRepository.findAllByUsernameContainingIgnoreCase(username).stream().map(pupil -> new PupilEntity(pupil))
+                .collect(Collectors.toList());
     }
 
 
