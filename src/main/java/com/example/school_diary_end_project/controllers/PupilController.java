@@ -113,7 +113,7 @@ public class PupilController {
 
 
 
-            temp.setPassword(passwordEncoder.encode(newPupil.getPassword()));
+//            temp.setPassword(passwordEncoder.encode(newPupil.getPassword()));
 
 
 
