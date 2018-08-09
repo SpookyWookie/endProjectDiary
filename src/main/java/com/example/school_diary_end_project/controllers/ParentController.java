@@ -68,31 +68,18 @@ public class ParentController {
         if(userRepository.existsByJmbg(parent.getJmbg())){
             return new ResponseEntity<>(new RESTError(15, "JMBG already in use" ), HttpStatus.BAD_REQUEST);
         }
-
         newParent.setJmbg(parent.getJmbg());
-
-
 
         newParent.setName(parent.getName());
 
-
-
         newParent.setSurname(parent.getSurname());
-
-
 
         if (userRepository.existsByUsername(parent.getUsername())){
             return new ResponseEntity<>(new RESTError(15, "Username already exists" ), HttpStatus.BAD_REQUEST);
         }
         newParent.setUsername(parent.getUsername());
 
-
-
-
 //        newParent.setPassword(passwordEncoder.encode(parent.getPassword()));
-
-
-
 
         List<EUserRole> list = new ArrayList<>();
         list.add(EUserRole.ROLE_PARENT);
@@ -102,13 +89,6 @@ public class ParentController {
             newParent.setPassword(passwordEncoder.encode(parent.getPassword()));
 
         }
-
-
-
-
-
-
-
 
         if (parent.getPassword() != null){
             newParent.setPassword(passwordEncoder.encode(parent.getPassword()));

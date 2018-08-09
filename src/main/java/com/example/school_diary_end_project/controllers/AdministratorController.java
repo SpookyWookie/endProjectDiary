@@ -140,10 +140,12 @@ public class AdministratorController {
         }
         return new ResponseEntity<RESTError>(new RESTError(1, "Administrator not found"), HttpStatus.NOT_FOUND);
     }
-//TODO RADE SVE 3 DOWNLOAD METODE MAMU IM JEBEM, POSTMAN JE GOVNO!!!
+
     @RequestMapping(value = "/log", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public @ResponseBody  ResponseEntity<?> logDownload() throws IOException{
         return fileHandler.logDownload();
+
+//        Old method, new version has been deffered to a fileHandler service
 
 //        File f = new File("logs/spring-boot-logging.log");
 //

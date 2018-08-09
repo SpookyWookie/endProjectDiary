@@ -58,6 +58,8 @@ public class PupilController {
         return result.getAllErrors().stream().map(ObjectError::getDefaultMessage).collect(Collectors.joining(" "));
     }
 
+
+//    Search by username functionality added
     @RequestMapping
     public ResponseEntity<?> getDb(@RequestParam(required = false) String username) {
         if(username == null){
